@@ -1,0 +1,4 @@
+App\Entity\Book:
+    properties:
+        title:
+            - NotBlank: ~

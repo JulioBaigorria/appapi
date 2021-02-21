@@ -1,0 +1,7 @@
+App\Entity\Book:
+    attributes:
+        
+        title:
+            groups: ['book']
+        image:
+            groups: ['book']
