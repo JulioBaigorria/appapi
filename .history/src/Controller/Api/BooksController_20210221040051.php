@@ -59,7 +59,7 @@ class BooksController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post(path="/books/{id}")
+     * @Rest\Post(path="/books/{id}", requirements={"id"="\d+"})
      * @Rest\View(serializerGroups={"book"}, serializerEnableMaxDepthChecks=true)
      */
     public function editAction(
@@ -108,14 +108,13 @@ class BooksController extends AbstractFOSRestController
                     $book->addCategory($category);
                 }
             }
-            $book->setTitle($bookDto->title);
+            $book->setTitle($book->title);
             if ($bookDto->image) {
                 $filename = $fileUploader = $fileUploader->uploadBase64File($bookDto->image);
                 $book->setImage($filename);
             }
             $em->persist($book);
             $em->flush();
-            $em->refresh($book);
             return $book;
         }
     

@@ -59,7 +59,7 @@ class BooksController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post(path="/books/{id}")
+     * @Rest\Post(path="/books/{id}", requirements={"id"="\d+"})
      * @Rest\View(serializerGroups={"book"}, serializerEnableMaxDepthChecks=true)
      */
     public function editAction(
@@ -84,7 +84,6 @@ class BooksController extends AbstractFOSRestController
         }
         $form = $this->createForm(BookFormType::class, $bookDto);
         $form->handleRequest($request);
-        
         if (!$form->isSubmitted()) {
             return new Response('', Response::HTTP_BAD_REQUEST);
         }
@@ -96,7 +95,7 @@ class BooksController extends AbstractFOSRestController
                     $book->removeCategory($category);
                 }
             }
-            //Create categories
+
             foreach ($bookDto->categories as $newCategoryDto) {
                 if (!$originalCategories->contains($newCategoryDto)) {
                     $category = $categoryRepository->find($newCategoryDto->id ?? 0);
@@ -108,17 +107,15 @@ class BooksController extends AbstractFOSRestController
                     $book->addCategory($category);
                 }
             }
-            $book->setTitle($bookDto->title);
+            $book->setTitle($book->title);
             if ($bookDto->image) {
-                $filename = $fileUploader = $fileUploader->uploadBase64File($bookDto->image);
+                $fileUploader = $fileUploader->uploadBase64File($bookDto->image);
                 $book->setImage($filename);
             }
             $em->persist($book);
             $em->flush();
-            $em->refresh($book);
             return $book;
         }
-    
         return $form;
     }
 }

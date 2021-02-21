@@ -2,9 +2,6 @@
 
 namespace App\Form\Model;
 
-use App\Entity\Book;
-
-
 class BookDto {
     public $title;
     public $image;
@@ -15,7 +12,7 @@ class BookDto {
         $this->categories = [];
     }
 
-    public static function createFromBook(Book $book): self
+    public static function createFromBook(Book $book):self
     {
         $dto = new self();
         $dto->title = $book->getTitle();

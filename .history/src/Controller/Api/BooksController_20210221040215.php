@@ -115,7 +115,6 @@ class BooksController extends AbstractFOSRestController
             }
             $em->persist($book);
             $em->flush();
-            $em->refresh($book);
             return $book;
         }
     

@@ -37,43 +37,44 @@ class BooksController extends AbstractFOSRestController
         EntityManagerInterface $em,
         Request $request,
         FileUploader $fileUploader
-    ) {
-        $bookDto = new BookDto();
-        $form = $this->createForm(BookFormType::class, $bookDto);
-        $form->handleRequest($request);
-        if (!$form->isSubmitted()) {
-            return new Response('', Response::HTTP_BAD_REQUEST);
-        }
-        if ($form->isValid()) {
-            $book = new Book();
-            $book->setTitle($bookDto->title);
-            if ($bookDto->image) {
-                $filename = $fileUploader->uploadBase64File($bookDto->image);
-                $book->setImage($filename);
+    )   {
+            $bookDto = new BookDto();
+            $form = $this->createForm(BookFormType::class, $bookDto);
+            $form->handleRequest($request);
+            if (!$form->isSubmitted()){
+                return new Response('', Response::HTTP_BAD_REQUEST);
+            } 
+            if($form->isValid()) {
+                $book = new Book();
+                $book->setTitle($bookDto->title);
+                if ($bookDto->image) {
+                    $filename = $fileUploader->uploadBase64File($bookDto->image);
+                    $book->setImage($filename);
+                }
+                $em->persist($book);
+                $em->flush();
+                return $book;
             }
-            $em->persist($book);
-            $em->flush();
-            return $book;
-        }
-        return $form;
+            return $form;
     }
 
     /**
-     * @Rest\Post(path="/books/{id}")
+     * @Rest\Post(path="/books/{id}", requirements={"id"="\d+"})
      * @Rest\View(serializerGroups={"book"}, serializerEnableMaxDepthChecks=true)
      */
-    public function editAction(
+     public function editAction(
         int $id,
         EntityManagerInterface $em,
         BookRepository $bookRepository,
         CategoryRepository $categoryRepository,
         Request $request,
         FileUploader $fileUploader
-    ) {
+     ){
         $book = $bookRepository->find($id);
-        if (!$book) {
+        if(!$book){
             throw $this->createNotFoundException('Book not found');
         }
+
         $bookDto = BookDto::createFromBook($book);
         $originalCategories = new ArrayCollection();
 
@@ -84,41 +85,35 @@ class BooksController extends AbstractFOSRestController
         }
         $form = $this->createForm(BookFormType::class, $bookDto);
         $form->handleRequest($request);
-        
-        if (!$form->isSubmitted()) {
+        if(!$form->isSubmitted()){
             return new Response('', Response::HTTP_BAD_REQUEST);
         }
-        if ($form->isValid()) {
+        if($form->isValid()){
             //Remove categories
-            foreach ($originalCategories as $originalCategoryDto) {
-                if (!in_array($originalCategoryDto, $bookDto->categories)) {
+            foreach($originalCategories as $originalCategoryDto){
+                if(!in_array($originalCategoryDto, $bookDto->categories)){
                     $category = $categoryRepository->find($originalCategoryDto->id);
                     $book->removeCategory($category);
                 }
             }
-            //Create categories
-            foreach ($bookDto->categories as $newCategoryDto) {
-                if (!$originalCategories->contains($newCategoryDto)) {
-                    $category = $categoryRepository->find($newCategoryDto->id ?? 0);
-                    if (!$category) {
-                        $category = new Category();
-                        $category->setName($newCategoryDto->name);
-                        $em->persist($category);
-                    }
-                    $book->addCategory($category);
-                }
-            }
-            $book->setTitle($bookDto->title);
-            if ($bookDto->image) {
-                $filename = $fileUploader = $fileUploader->uploadBase64File($bookDto->image);
-                $book->setImage($filename);
-            }
-            $em->persist($book);
-            $em->flush();
-            $em->refresh($book);
-            return $book;
         }
-    
-        return $form;
-    }
+        foreach ($bookDto->categories as $newCategoryDto) {
+            if(!$originalCategories->contains($newCategoryDto)){
+                $category = $categoryRepository->find($newCategoryDto->id ?? 0);
+                if(!$category){
+                    $category = new Category();
+                    $category->setName($newCategoryDto->name);
+                    $em->persist($category);
+                }
+                $book->addCategory($category);
+            }
+        }
+        $book->setTitle($book->title);
+        if($bookDto->image){
+            $fileUploader = $fileUploader->uploadBase64File($bookDto->image);
+        }
+        $em->persist($book);
+        $em->flush();
+     }
+
 }

@@ -16,7 +16,7 @@ class BookFormType extends AbstractType
         $builder
             ->add('title', TextType::class)
             ->add('image', TextType::class)
-            ->add('categories', CollectionType::class, [
+            ->add('categoties', CollectionType::class, [
                 'allow_add' => true,
                 'allow_delete' => true,
                 'entry_type' => CategoryFormType::class
